@@ -11,7 +11,7 @@ import (
 
 func init() {
 	router.GET("/hello", util.WrapHandler(sayHello))
-	platform.RegisterProvider("test", router)
+	platform.RegisterProvider("ehlo", router)
 }
 
 var router = httprouter.New()
