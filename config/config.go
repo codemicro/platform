@@ -14,14 +14,20 @@ type HTTP struct {
 	Port int
 }
 
+type ReadingList struct {
+	Token             string
+	GithubAccessToken string
+}
+
 func (h *HTTP) Address() string {
 	return fmt.Sprintf("%s:%d", h.Host, h.Port)
 }
 
 type Config struct {
-	Debug      bool
-	HTTP       *HTTP
-	HostSuffix string
+	Debug       bool
+	HTTP        *HTTP
+	ReadingList *ReadingList
+	HostSuffix  string
 }
 
 var (
@@ -43,6 +49,10 @@ func Get() *Config {
 			HTTP: &HTTP{
 				Host: cl.WithDefault("http.host", "127.0.0.1").AsString(),
 				Port: cl.WithDefault("http.port", 8080).AsInt(),
+			},
+			ReadingList: &ReadingList{
+				Token:             cl.Required("readingList.token").AsString(),
+				GithubAccessToken: cl.Required("readingList.githubAccessToken").AsString(),
 			},
 			HostSuffix: cl.Required("hostSuffix").AsString(),
 		}
