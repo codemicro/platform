@@ -29,8 +29,16 @@ func ListenAndServe(address string) error {
 
 func handler(rw http.ResponseWriter, rq *http.Request) {
 	host := strings.ToLower(rq.Host)
+	hostWasTransformed := host != rq.Host
 	for _, provider := range providers {
 		if host == provider.Host {
+			if hostWasTransformed {
+				newURL := *rq.URL
+				newURL.Host = host
+				rw.Header().Set("Location", newURL.String())
+				rw.WriteHeader(http.StatusFound)
+				return
+			}
 			provider.Handler.ServeHTTP(rw, rq)
 			return
 		}
