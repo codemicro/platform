@@ -17,7 +17,7 @@ import (
 func init() {
 	router.GET("/api/add", util.WrapHandler(addHandler))
 
-	platform.RegisterProvider("readingList", router)
+	platform.RegisterProvider("readinglist", router)
 }
 
 var router = httprouter.New()
