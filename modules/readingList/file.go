@@ -141,7 +141,7 @@ func openReadingListFile() (*os.File, error) {
 func generateMapFile() error {
 	f, err := openReadingListFile()
 	if err != nil {
-		return err
+		return fmt.Errorf("open reading list CSV: %w", err)
 	}
 	defer f.Close()
 
@@ -168,7 +168,7 @@ func generateMapFile() error {
 			if errors.Is(err, io.EOF) {
 				stop = true
 			} else {
-				return err
+				return fmt.Errorf("read record: %w", err)
 			}
 		}
 
@@ -181,7 +181,7 @@ func generateMapFile() error {
 		dateString := record[4]
 		recordTime := &time.Time{}
 		if err := recordTime.UnmarshalText([]byte(dateString)); err != nil {
-			return err
+			return fmt.Errorf("unmarshal time: %w", err)
 		}
 
 		key := [2]int{int(recordTime.Month()), recordTime.Year()}
@@ -231,11 +231,11 @@ func generateMapFile() error {
 
 	j, err := json.Marshal(res)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshal json: %w", err)
 	}
 
 	if err := os.WriteFile(store.MakePath(mapFilename), j, 0644); err != nil {
-		return err
+		return fmt.Errorf("dump to file: %w", err)
 	}
 
 	return nil

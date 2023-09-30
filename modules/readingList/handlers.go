@@ -112,6 +112,8 @@ func sourceCSVHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Par
 	}
 	defer f.Close()
 
+	rw.Header().Set("Content-Type", "text/csv")
+
 	rangeString := rq.Header.Get("Range")
 	sp := strings.Split(rangeString, "=")
 	if len(sp) == 2 && sp[0] == "bytes" {
@@ -153,6 +155,8 @@ func mapHandler(rw http.ResponseWriter, _ *http.Request, _ httprouter.Params) er
 		return err
 	}
 	defer f.Close()
+
+	rw.Header().Set("Content-Type", "application/json")
 
 	_, err = io.Copy(rw, f)
 	return err
