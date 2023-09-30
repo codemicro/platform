@@ -2,6 +2,7 @@ package readingList
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/carlmjohnson/requests"
 	"github.com/codemicro/platform/config"
@@ -10,7 +11,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 	g "github.com/maragudk/gomponents"
 	"github.com/maragudk/gomponents/html"
+	"io"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -76,10 +80,80 @@ func addHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params) e
 		return fmt.Errorf("add row to CSV: %w", err)
 	}
 
+	if err := generateMapFile(); err != nil {
+		return fmt.Errorf("generate map file: %w", err)
+	}
+
 	return htmlutil.BasePage("Success!", html.Span(
 		html.StyleAttr("color: darkgreen;"),
 		g.Text("Success!"),
 	),
 		html.Script(g.Rawf(`setTimeout(function(){window.location.replace(%#v);}, 500);`, data.NextURL)),
 	).Render(rw)
+}
+
+func indexHandler(rw http.ResponseWriter, _ *http.Request, _ httprouter.Params) error {
+	return htmlutil.BasePage(
+		"Reading list",
+		html.H1(g.Text("Reading list")),
+		html.A(g.Text("Source CSV"), g.Attr("href", "/csv")),
+	).Render(rw)
+}
+
+func sourceCSVHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params) error {
+	f, err := openReadingListFile()
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			rw.WriteHeader(404)
+			_, _ = rw.Write([]byte("Not found"))
+			return nil
+		}
+		return err
+	}
+	defer f.Close()
+
+	rangeString := rq.Header.Get("Range")
+	sp := strings.Split(rangeString, "=")
+	if len(sp) == 2 && sp[0] == "bytes" {
+		offsetStrings := strings.Split(sp[1], "-")
+		start, err := strconv.ParseInt(offsetStrings[0], 10, 64)
+		if err != nil {
+			goto fullFile
+		}
+		_, err = f.Seek(start, 0)
+		if err != nil {
+			goto fullFile
+		}
+		if len(offsetStrings) > 1 {
+			end, err := strconv.ParseInt(offsetStrings[1], 10, 64)
+			if err != nil || end < start {
+				_, _ = f.Seek(0, 0)
+				goto fullFile
+			}
+			rw.WriteHeader(http.StatusPartialContent)
+			_, err = io.CopyN(rw, f, end-start)
+			return err
+		}
+		rw.WriteHeader(http.StatusPartialContent)
+	}
+
+fullFile:
+	_, err = io.Copy(rw, f)
+	return err
+}
+
+func mapHandler(rw http.ResponseWriter, _ *http.Request, _ httprouter.Params) error {
+	f, err := os.Open(store.MakePath(mapFilename))
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			rw.WriteHeader(404)
+			_, _ = rw.Write([]byte("Not found"))
+			return nil
+		}
+		return err
+	}
+	defer f.Close()
+
+	_, err = io.Copy(rw, f)
+	return err
 }

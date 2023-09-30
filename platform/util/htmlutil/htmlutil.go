@@ -13,6 +13,7 @@ func BasePage(title string, content ...g.Node) g.Node {
 body {
 	font-family: sans-serif;
 	font-size: 1.1rem;
+	padding: 1em;
 }
 `)),
 		),

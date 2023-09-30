@@ -11,6 +11,9 @@ import (
 const moduleName = "readinglist"
 
 func init() {
+	router.GET("/", util.WrapHandler(indexHandler))
+	router.GET("/csv", util.WrapHandler(sourceCSVHandler))
+	router.GET("/map", util.WrapHandler(mapHandler))
 	router.GET("/api/add", util.WrapHandler(addHandler))
 
 	platform.RegisterProvider(moduleName, router)

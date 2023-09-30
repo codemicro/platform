@@ -5,14 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log/slog"
 	"net/http"
 	"os"
+	"sort"
 	"time"
 )
 
 const readingListFilename = "readingList.csv"
+const mapFilename = "readingList.map.json"
 
 func addRowToCSV(data *inputs) error {
 	if err := data.Validate(); err != nil {
@@ -30,7 +33,7 @@ func addRowToCSV(data *inputs) error {
 	var doesCSVExist bool
 	{
 		_, err := os.Stat(csvFilePath)
-		doesCSVExist = err != nil && !errors.Is(err, os.ErrNotExist)
+		doesCSVExist = err == nil
 	}
 
 	fileFlags := os.O_APPEND | os.O_WRONLY
@@ -123,4 +126,117 @@ func queryHackerNews(url string) (string, error) {
 	}
 
 	return fmt.Sprintf(hackerNewsSubmissionURL, targetSubmission.ObjectID), nil
+}
+
+// openReadingListFile opens the reading list CSV for reading.
+func openReadingListFile() (*os.File, error) {
+	csvFilePath := store.MakePath(readingListFilename)
+	f, err := os.Open(csvFilePath)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func generateMapFile() error {
+	f, err := openReadingListFile()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// This entire function presumes that the dates contained in the file are in a strictly increasing order the further
+	// into the file you get.
+
+	type fileRange struct {
+		Start int64 `json:"start"`
+		End   int64 `json:"end"`
+	}
+
+	offsets := make(map[[2]int]*fileRange)
+
+	reader := csv.NewReader(f)
+
+	_, _ = reader.Read() // ignore the header line
+
+	lineStart := reader.InputOffset()
+
+	for {
+		var stop bool
+		record, err := reader.Read()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				stop = true
+			} else {
+				return err
+			}
+		}
+
+		if len(record) == 0 {
+			break
+		}
+
+		lineEnd := reader.InputOffset()
+
+		dateString := record[4]
+		recordTime := &time.Time{}
+		if err := recordTime.UnmarshalText([]byte(dateString)); err != nil {
+			return err
+		}
+
+		key := [2]int{int(recordTime.Month()), recordTime.Year()}
+
+		fr := offsets[key]
+		if fr == nil {
+			fr = &fileRange{}
+			offsets[key] = fr
+			fr.Start = lineStart
+		}
+
+		fr.End = lineEnd - 1
+
+		if stop {
+			break
+		}
+
+		lineStart = lineEnd
+	}
+
+	var months [][2]int
+	for k := range offsets {
+		months = append(months, k)
+	}
+
+	sort.Slice(months, func(i, j int) bool {
+		im, jm := months[i], months[j]
+		if im[1] != jm[1] {
+			return im[1] < jm[1]
+		}
+		return im[0] < jm[0]
+	})
+
+	type resp struct {
+		Name  string     `json:"name"`
+		Range *fileRange `json:"range"`
+	}
+
+	var res []*resp
+
+	for _, k := range months {
+		res = append(res, &resp{
+			Name:  fmt.Sprintf("%s %d", time.Month(k[0]).String()[0:3], k[1]),
+			Range: offsets[k],
+		})
+	}
+
+	j, err := json.Marshal(res)
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(store.MakePath(mapFilename), j, 0644); err != nil {
+		return err
+	}
+
+	return nil
 }
