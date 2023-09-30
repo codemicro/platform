@@ -86,6 +86,6 @@ func addHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params) e
 		html.StyleAttr("color: darkgreen;"),
 		g.Text("Success!"),
 	),
-		html.Script(g.Textf(`setTimeout(function(){window.location.replace(%#v);}, 500);`, data.NextURL)),
+		html.Script(g.Rawf(`setTimeout(function(){window.location.replace(%#v);}, 500);`, data.NextURL)),
 	).Render(rw)
 }
