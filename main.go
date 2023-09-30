@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 
+	_ "github.com/codemicro/platform/modules/avatars"
 	_ "github.com/codemicro/platform/modules/readingList"
 	_ "github.com/codemicro/platform/modules/test"
 )

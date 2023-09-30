@@ -14,13 +14,13 @@ type HTTP struct {
 	Port int
 }
 
+func (h *HTTP) Address() string {
+	return fmt.Sprintf("%s:%d", h.Host, h.Port)
+}
+
 type ReadingList struct {
 	Token             string
 	GithubAccessToken string
-}
-
-func (h *HTTP) Address() string {
-	return fmt.Sprintf("%s:%d", h.Host, h.Port)
 }
 
 type Config struct {

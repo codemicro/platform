@@ -2,15 +2,18 @@ package readingList
 
 import (
 	"context"
-	"fmt"
 	"github.com/carlmjohnson/requests"
 	"github.com/codemicro/platform/config"
 	"github.com/codemicro/platform/platform"
 	"github.com/codemicro/platform/platform/util"
+	"github.com/codemicro/platform/platform/util/htmlutil"
 	rltransport "github.com/codemicro/readingList/transport"
 	"github.com/go-playground/validator"
 	"github.com/julienschmidt/httprouter"
+	g "github.com/maragudk/gomponents"
+	"github.com/maragudk/gomponents/html"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -25,6 +28,7 @@ var router = httprouter.New()
 func addHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params) error {
 	rw.Header().Set("Access-Control-Allow-Headers", "content-type,authorization")
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
+	rw.Header().Set("Content-Type", "text/html")
 
 	data := &struct {
 		rltransport.Inputs
@@ -46,15 +50,15 @@ func addHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params) e
 		err := validate.Struct(data)
 		if err != nil {
 			rw.WriteHeader(400)
-			_, _ = rw.Write([]byte("Bad request - " + err.Error()))
-			return nil
+			n := htmlutil.BasePage("Bad request", g.Text("Bad request"), html.Br(), htmlutil.UnorderedList(strings.Split(err.Error(), "\n")))
+			return n.Render(rw)
 		}
 	}
 
 	if data.Token != config.Get().ReadingList.Token {
 		rw.WriteHeader(401)
-		_, _ = rw.Write([]byte("Invalid token"))
-		return nil
+		n := htmlutil.BasePage("Invalid token", g.Text("Unauthorised - invalid token"))
+		return n.Render(rw)
 	}
 
 	bodyData := &struct {
@@ -78,7 +82,10 @@ func addHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params) e
 		return err
 	}
 
-	rw.Header().Set("Content-Type", "text/html")
-	_, _ = rw.Write([]byte(fmt.Sprintf("<span style='color: darkgreen;'>Success!</span><script>setTimeout(function(){window.location.replace(%#v);}, 500);</script>", data.NextURL)))
-	return nil
+	return htmlutil.BasePage("Success!", html.Span(
+		html.StyleAttr("color: darkgreen;"),
+		g.Text("Success!"),
+	),
+		html.Script(g.Textf(`setTimeout(function(){window.location.replace(%#v);}, 500);`, data.NextURL)),
+	).Render(rw)
 }
