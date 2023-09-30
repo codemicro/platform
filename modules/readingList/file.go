@@ -46,7 +46,7 @@ func addRowToCSV(data *inputs) error {
 	}
 
 	timeStr, _ := time.Now().MarshalText()
-	records = append(records, []string{data.URL, data.Title, data.Description, string(timeStr), hnURL})
+	records = append(records, []string{data.URL, data.Title, data.Description, data.Image, string(timeStr), hnURL})
 
 	// make changes to CSV file
 
@@ -182,6 +182,7 @@ func generateMapFile() error {
 		dateString := record[4]
 		recordTime := &time.Time{}
 		if err := recordTime.UnmarshalText([]byte(dateString)); err != nil {
+			log.Info()
 			return fmt.Errorf("unmarshal time: %w", err)
 		}
 
