@@ -182,7 +182,6 @@ func generateMapFile() error {
 		dateString := record[4]
 		recordTime := &time.Time{}
 		if err := recordTime.UnmarshalText([]byte(dateString)); err != nil {
-			log.Info()
 			return fmt.Errorf("unmarshal time: %w", err)
 		}
 
