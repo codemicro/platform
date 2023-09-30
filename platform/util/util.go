@@ -24,3 +24,10 @@ func WrapHandler(hf HandlerFuncWithError) httprouter.Handle {
 		}
 	}
 }
+
+func Must[T any](x T, y error) T {
+	if y != nil {
+		panic(y)
+	}
+	return x
+}
