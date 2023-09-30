@@ -156,6 +156,7 @@ func generateMapFile() error {
 	offsets := make(map[[2]int]*fileRange)
 
 	reader := csv.NewReader(f)
+	reader.FieldsPerRecord = -1 // disable record length checking
 
 	_, _ = reader.Read() // ignore the header line
 
