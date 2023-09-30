@@ -30,7 +30,7 @@ func addRowToCSV(data *inputs) error {
 	var doesCSVExist bool
 	{
 		_, err := os.Stat(csvFilePath)
-		doesCSVExist = err != nil && errors.Is(err, os.ErrNotExist)
+		doesCSVExist = err != nil && !errors.Is(err, os.ErrNotExist)
 	}
 
 	fileFlags := os.O_APPEND | os.O_WRONLY
