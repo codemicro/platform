@@ -20,7 +20,7 @@ import (
 )
 
 func addHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params) error {
-	rw.Header().Set("Access-Control-Allow-Headers", "content-type,authorization")
+	//rw.Header().Set("Access-Control-Allow-Headers", "content-type,authorization")
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
 	rw.Header().Set("Content-Type", "text/html")
 
@@ -101,6 +101,9 @@ func indexHandler(rw http.ResponseWriter, _ *http.Request, _ httprouter.Params) 
 }
 
 func sourceCSVHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params) error {
+	rw.Header().Set("Access-Control-Allow-Headers", "range")
+	rw.Header().Set("Access-Control-Allow-Origin", "*")
+
 	f, err := openReadingListFile()
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -145,6 +148,8 @@ fullFile:
 }
 
 func mapHandler(rw http.ResponseWriter, _ *http.Request, _ httprouter.Params) error {
+	rw.Header().Set("Access-Control-Allow-Origin", "*")
+	
 	f, err := os.Open(store.MakePath(mapFilename))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
