@@ -241,3 +241,37 @@ func generateMapFile() error {
 
 	return nil
 }
+
+func readLastNLines(f *os.File, n int) ([]byte, error) {
+	st, err := f.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("stat reading list file: %w", err)
+	}
+
+	var (
+		buf          []byte
+		b            = make([]byte, 1)
+		newlineCount int
+		fileSize     = st.Size()
+	)
+
+	for i := 0; int64(i) < fileSize; i += 1 {
+		targetByte := fileSize - int64(i+1)
+		_, err := f.ReadAt(b, targetByte)
+		if err != nil {
+			return nil, fmt.Errorf("read from reading list file: %w", err)
+		}
+
+		if b[0] == '\n' {
+			newlineCount += 1
+		}
+
+		if newlineCount == n {
+			break
+		}
+
+		buf = append(b, buf...)
+	}
+
+	return buf, nil
+}

@@ -1,7 +1,9 @@
 package readingList
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"github.com/carlmjohnson/requests"
@@ -14,6 +16,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -93,10 +96,36 @@ func addHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params) e
 }
 
 func indexHandler(rw http.ResponseWriter, _ *http.Request, _ httprouter.Params) error {
+	f, err := openReadingListFile()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	buf, err := readLastNLines(f, 6)
+	if err != nil {
+		return err
+	}
+
+	rd := csv.NewReader(bytes.NewReader(buf[:len(buf)-1]))
+	records, err := rd.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	slices.Reverse(records)
+
+	ix := len(records)
+
 	return htmlutil.BasePage(
 		"Reading list",
 		html.H1(g.Text("Reading list")),
 		html.A(g.Text("Source CSV"), g.Attr("href", "/csv")),
+		html.H2(g.Text("Recent additions")),
+		html.Ul(g.Map(records, func(i []string) g.Node {
+			ix -= 1
+			return html.Li(g.Text(i[1]+" "), html.A(g.Attr("href", fmt.Sprintf("/delete?n=%d", ix)), g.Text("[remove]")))
+		})...),
 	).Render(rw)
 }
 
@@ -149,7 +178,7 @@ fullFile:
 
 func mapHandler(rw http.ResponseWriter, _ *http.Request, _ httprouter.Params) error {
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
-	
+
 	f, err := os.Open(store.MakePath(mapFilename))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
