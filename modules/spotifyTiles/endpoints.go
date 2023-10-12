@@ -57,7 +57,7 @@ func indexHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params)
 	return htmlutil.BasePage(
 		"Spotify tiles",
 		html.H1(g.Text("Spotify Tiles")),
-		html.A(g.Text("[See detected playlists]"), g.Attr("href", "/")),
+		html.A(g.Text("[See detected playlists]"), g.Attr("href", "/playlists")),
 		html.Ul(
 			html.Li(g.Textf("Current user: %s ", currentUser), html.A(g.Attr("href", "/oauth/outbound"), g.Text("[auth]"))),
 			html.Li(g.Text("OAuth redirect URL: "), html.Code(g.Text(deriveOauthRedirectURL(rq)))),

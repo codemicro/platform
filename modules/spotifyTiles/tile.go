@@ -10,7 +10,6 @@ import (
 	"image/jpeg"
 	"log/slog"
 	"math"
-	"os"
 	"time"
 )
 
@@ -51,14 +50,7 @@ func generateFromAlbumImages(imgs []*albumImages) (image.Image, error) {
 		}
 	}
 
-	f, err := os.OpenFile("bananas.jpg", os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		return nil, err
-	}
-	if err := jpeg.Encode(f, img, nil); err != nil {
-		return nil, err
-	}
-	return img, f.Close()
+	return img, nil
 	//return nil
 }
 

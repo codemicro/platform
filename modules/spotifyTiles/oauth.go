@@ -49,6 +49,8 @@ func oauthInbound(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params)
 		return fmt.Errorf("save oauth2 token: %w", err)
 	}
 
+	rw.WriteHeader(301)
+	rw.Header().Set("Location", "/")
 	return nil
 }
 
