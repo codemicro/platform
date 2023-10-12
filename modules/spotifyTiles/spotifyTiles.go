@@ -13,8 +13,6 @@ import (
 const moduleName = "spotifytiles"
 
 func init() {
-	//router.GET("/", util.WrapHandler(indexHandler))
-
 	router.GET("/", util.WrapHandler(indexHandler))
 	router.GET("/playlists", util.WrapHandler(detectedPlaylistsHandler))
 	router.GET("/oauth/outbound", util.WrapHandler(oauthOutbound))
