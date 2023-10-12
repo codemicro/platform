@@ -56,7 +56,7 @@ func generateFromAlbumImages(imgs []*albumImages) (image.Image, error) {
 
 func getImageFromURL(url string) (image.Image, error) {
 	slog.Debug("get image URL", "url", url)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 	buf := new(bytes.Buffer)
 	err := requests.

@@ -35,7 +35,7 @@ func oauthInbound(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params)
 		return nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
 	tok, err := oauthConf.Exchange(ctx, code,

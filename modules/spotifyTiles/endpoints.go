@@ -19,7 +19,7 @@ func indexHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params)
 		return fmt.Errorf("load token: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
 	var userInfo *user
@@ -74,7 +74,7 @@ func detectedPlaylistsHandler(rw http.ResponseWriter, _ *http.Request, _ httprou
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
 	client := oauthConf.Client(ctx, tok)

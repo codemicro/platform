@@ -14,7 +14,7 @@ func runTilesTask() error {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
 	client := oauthConf.Client(ctx, tok)
@@ -46,7 +46,7 @@ func runTilesTask() error {
 			// updated playlist, regenerate
 			slog.Debug("playlists updated", "id", x.Id, "ssid", x.SnapshotId)
 			knownSnapshots[x.Id] = x.SnapshotId
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*90)
 			imgs, err := getPlaylistAlbumImages(ctx, client, x.Id)
 			defer cancel()
 			if err != nil {
