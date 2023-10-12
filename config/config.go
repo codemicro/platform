@@ -23,11 +23,18 @@ type ReadingList struct {
 	GithubAccessToken string
 }
 
+type SpotifyTiles struct {
+	ClientID     string
+	ClientSecret string
+	RedirectURI  string
+}
+
 type Config struct {
-	Debug       bool
-	HTTP        *HTTP
-	ReadingList *ReadingList
-	HostSuffix  string
+	Debug        bool
+	HTTP         *HTTP
+	ReadingList  *ReadingList
+	SpotifyTiles *SpotifyTiles
+	HostSuffix   string
 }
 
 var (
@@ -53,6 +60,11 @@ func Get() *Config {
 			ReadingList: &ReadingList{
 				Token:             cl.Required("readingList.token").AsString(),
 				GithubAccessToken: cl.Required("readingList.githubAccessToken").AsString(),
+			},
+			SpotifyTiles: &SpotifyTiles{
+				ClientID:     cl.Required("spotifyTiles.clientID").AsString(),
+				ClientSecret: cl.Required("spotifyTiles.clientSecret").AsString(),
+				RedirectURI:  cl.Get("spotifyTiles.redirectURI").AsString(),
 			},
 			HostSuffix: cl.Required("hostSuffix").AsString(),
 		}
