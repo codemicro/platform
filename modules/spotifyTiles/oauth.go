@@ -72,9 +72,9 @@ func saveToken(tok *oauth2.Token) error {
 }
 
 func loadToken() (*oauth2.Token, error) {
-	tok, err := restoreFromDisk[oauth2.Token](store.MakePath("spotifyCredentials.json"))
+	tok, err := restoreFromDisk[*oauth2.Token](store.MakePath("spotifyCredentials.json"))
 	if err != nil {
 		return nil, fmt.Errorf("load token: %w", err)
 	}
-	return &tok, nil
+	return tok, nil
 }
