@@ -24,6 +24,7 @@ func RegisterProvider(hostPrefix string, handler http.Handler) {
 }
 
 func ListenAndServe(address string) error {
+	slog.Info("HTTP alive!", "address", address)
 	return http.ListenAndServe(address, http.HandlerFunc(handler))
 }
 

@@ -21,6 +21,11 @@ func main() {
 
 func run() error {
 	conf := config.Get()
-	slog.Info("HTTP alive!", "address", conf.HTTP.Address())
+	if conf.Debug {
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})))
+	}
+	platform.StartCron()
 	return platform.ListenAndServe(conf.HTTP.Address())
 }

@@ -3,6 +3,7 @@ package spotifyTiles
 import (
 	"context"
 	"fmt"
+	"github.com/codemicro/platform/platform"
 	"github.com/codemicro/platform/platform/util/htmlutil"
 	"github.com/julienschmidt/httprouter"
 	g "github.com/maragudk/gomponents"
@@ -36,6 +37,20 @@ func indexHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params)
 
 	rw.Header().Set("Content-Type", "text/html")
 
+	var cronNodes []g.Node
+	if entry := platform.GetCronEntry(recurringJobID); entry.Job != nil {
+		status := "ok"
+		if recurringJobHadError {
+			status = "errored"
+		}
+		previousRunStr := entry.Prev.Format(time.DateTime)
+		if entry.Prev.IsZero() {
+			previousRunStr = "never"
+		}
+		cronNodes = append(cronNodes, html.Li(g.Textf("Job last run: %s (status %s)", previousRunStr, status)))
+		cronNodes = append(cronNodes, html.Li(g.Textf("Job next run: %s (in %s)", entry.Next.Format(time.DateTime), entry.Next.Sub(time.Now()).Truncate(time.Second).String())))
+	}
+
 	return htmlutil.BasePage(
 		"Spotify tiles",
 		html.H1(g.Text("Spotify Tiles")),
@@ -43,6 +58,7 @@ func indexHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params)
 		html.Ul(
 			html.Li(g.Textf("Current user: %s ", currentUser), html.A(g.Attr("href", "/oauth/outbound"), g.Text("[auth]"))),
 			html.Li(g.Text("OAuth redirect URL: "), html.Code(g.Text(deriveOauthRedirectURL(rq)))),
+			g.If(len(cronNodes) != 0, g.Group(cronNodes)),
 		),
 	).Render(rw)
 }
@@ -93,55 +109,7 @@ func detectedPlaylistsHandler(rw http.ResponseWriter, _ *http.Request, _ httprou
 }
 
 func tileHandler(rw http.ResponseWriter, _ *http.Request, _ httprouter.Params) error {
-	tok, err := loadToken()
-	if err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
-	defer cancel()
-
-	client := oauthConf.Client(ctx, tok)
-
-	userInfo, err := getUser(ctx, client)
-	if err != nil {
-		return err
-	}
-
-	playlists, err := getPlaylists(ctx, client, userInfo.Id)
-	if err != nil {
-		return err
-	}
-
-	knownSnapshots, err := loadKnownSnapshots()
-	if err != nil {
-		return err
-	}
-
-	for _, x := range playlists {
-		if !playlistNameRegexp.MatchString(x.Name) {
-			continue
-		}
-
-		if ksid, found := knownSnapshots[x.Id]; !found {
-			// new playlist
-			knownSnapshots[x.Id] = x.SnapshotId
-		} else if ksid != x.SnapshotId {
-			// TODO: update existing playlist image
-			knownSnapshots[x.Id] = x.SnapshotId
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
-			imgs, err := getPlaylistAlbumImages(ctx, client, x.Id)
-			defer cancel()
-			if err != nil {
-				return err
-			}
-			if err := generateFromAlbumImages(imgs); err != nil {
-				return err
-			}
-		}
-	}
-
-	if err := saveKnownSnapshots(knownSnapshots); err != nil {
+	if err := runTilesTask(); err != nil {
 		return err
 	}
 

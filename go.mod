@@ -19,6 +19,7 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	golang.org/x/image v0.12.0 // indirect
 	golang.org/x/net v0.16.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect

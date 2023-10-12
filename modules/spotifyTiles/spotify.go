@@ -1,9 +1,13 @@
 package spotifyTiles
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"github.com/carlmjohnson/requests"
+	"image"
+	"image/jpeg"
 	"net/http"
 )
 
@@ -148,6 +152,28 @@ func getPlaylistAlbumImages(ctx context.Context, client *http.Client, playlistID
 		}
 	}
 	return res, nil
+}
+
+func setPlaylistImage(ctx context.Context, client *http.Client, playlistID string, img image.Image) error {
+	buf := new(bytes.Buffer)
+	enc := base64.NewEncoder(base64.StdEncoding, buf)
+	if err := jpeg.Encode(enc, img, &jpeg.Options{Quality: 75}); err != nil {
+		return err
+	}
+	if err := enc.Close(); err != nil {
+		return err
+	}
+
+	err := requests.
+		URL("https://api.spotify.com").
+		Pathf("/v1/playlists/%s/images", playlistID).
+		BodyReader(buf).
+		ContentType("image/jpeg").
+		Method(http.MethodPut).
+		Client(client).
+		Fetch(ctx)
+
+	return err
 }
 
 type snapshots map[string]string

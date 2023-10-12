@@ -14,7 +14,7 @@ import (
 var oauthConf = &oauth2.Config{
 	ClientID:     config.Get().SpotifyTiles.ClientID,
 	ClientSecret: config.Get().SpotifyTiles.ClientSecret,
-	Scopes:       []string{"playlist-read-private", "playlist-modify-public", "playlist-modify-private"},
+	Scopes:       []string{"playlist-read-private", "playlist-modify-public", "playlist-modify-private", "ugc-image-upload"},
 	Endpoint: oauth2.Endpoint{
 		AuthURL:  "https://accounts.spotify.com/authorize",
 		TokenURL: "https://accounts.spotify.com/api/token",

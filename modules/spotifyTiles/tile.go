@@ -8,6 +8,8 @@ import (
 	"golang.org/x/image/draw"
 	"image"
 	"image/jpeg"
+	"log/slog"
+	"math"
 	"os"
 	"time"
 )
@@ -16,42 +18,52 @@ var errTooFewImages = errors.New("too few images")
 
 const outputSize = 300
 
-func generateFromAlbumImages(imgs []*albumImages) error {
+func generateFromAlbumImages(imgs []*albumImages) (image.Image, error) {
 	if len(imgs) <= 3 {
-		return errTooFewImages
+		return nil, errTooFewImages
 	}
 
-	targetDim := 2
+	numImagesPerSide := 2
 	for {
-		if x := targetDim + 1; x*x > len(imgs) {
+		if x := numImagesPerSide + 1; x*x > len(imgs) {
 			break
 		} else {
-			targetDim = x
+			numImagesPerSide = x
 		}
 	}
 
-	//img := image.NewRGBA(image.Rect(0, 0, outputSize, outputSize))
+	img := image.NewRGBA(image.Rect(0, 0, outputSize, outputSize))
 
-	res, err := getImageFromURL(imgs[0].Images[0].Url)
-	if err != nil {
-		return err
+	subImageDimension := int(math.Ceil(float64(outputSize / numImagesPerSide)))
+
+	slog.Debug("image dimensions calculated", "dim", subImageDimension)
+
+	for x := 0; x < numImagesPerSide; x += 1 {
+		for y := 0; y < numImagesPerSide; y += 1 {
+			i := (x * numImagesPerSide) + y
+			res, err := getImageFromURL(imgs[i].Images[0].Url)
+			if err != nil {
+				return nil, err
+			}
+			resized := image.NewRGBA(image.Rect(0, 0, subImageDimension, subImageDimension))
+			draw.ApproxBiLinear.Scale(resized, resized.Rect, res, res.Bounds(), draw.Over, nil)
+			pasteImage(resized, img, x*subImageDimension, y*subImageDimension)
+		}
 	}
-
-	dst := image.NewRGBA(image.Rect(0, 0, 50, 50))
-	draw.ApproxBiLinear.Scale(dst, dst.Rect, res, res.Bounds(), draw.Over, nil)
 
 	f, err := os.OpenFile("bananas.jpg", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if err := jpeg.Encode(f, dst, nil); err != nil {
-		return err
+	if err := jpeg.Encode(f, img, nil); err != nil {
+		return nil, err
 	}
-	return f.Close()
+	return img, f.Close()
 	//return nil
 }
 
 func getImageFromURL(url string) (image.Image, error) {
+	slog.Debug("get image URL", "url", url)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	buf := new(bytes.Buffer)
@@ -67,4 +79,13 @@ func getImageFromURL(url string) (image.Image, error) {
 		return nil, err
 	}
 	return img, nil
+}
+
+func pasteImage(src image.Image, dst *image.RGBA, atX, atY int) {
+	srcBounds := src.Bounds()
+	for x := 0; x < srcBounds.Dx(); x += 1 {
+		for y := 0; y < srcBounds.Dy(); y += 1 {
+			dst.Set(x+atX, y+atY, src.At(x, y))
+		}
+	}
 }

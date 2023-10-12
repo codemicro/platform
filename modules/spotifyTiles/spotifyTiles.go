@@ -25,8 +25,14 @@ func init() {
 }
 
 var (
-	router = httprouter.New()
-	store  = util.Must(storage.New(moduleName))
+	router               = httprouter.New()
+	store                = util.Must(storage.New(moduleName))
+	recurringJobHadError = false
+	recurringJobID       = util.Must(platform.RegisterRecurringTask("*/30 * * * *", func() error {
+		err := runTilesTask()
+		recurringJobHadError = err != nil
+		return err
+	}))
 )
 
 func dumpToDisk[T any](m T, fname string) error {
