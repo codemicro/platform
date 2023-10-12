@@ -22,9 +22,12 @@ func indexHandler(rw http.ResponseWriter, rq *http.Request, _ httprouter.Params)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	userInfo, err := getUser(ctx, oauthConf.Client(ctx, tok))
-	if err != nil {
-		return err
+	var userInfo *user
+	if tok != nil {
+		userInfo, err = getUser(ctx, oauthConf.Client(ctx, tok))
+		if err != nil {
+			return err
+		}
 	}
 
 	currentUser := "none"
