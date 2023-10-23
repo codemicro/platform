@@ -45,7 +45,7 @@ func generateFromAlbumImages(imgs []*albumImages) (image.Image, error) {
 				return nil, err
 			}
 			resized := image.NewRGBA(image.Rect(0, 0, subImageDimension, subImageDimension))
-			draw.ApproxBiLinear.Scale(resized, resized.Rect, res, res.Bounds(), draw.Over, nil)
+			draw.BiLinear.Scale(resized, resized.Rect, res, res.Bounds(), draw.Over, nil)
 			pasteImage(resized, img, x*subImageDimension, y*subImageDimension)
 		}
 	}
