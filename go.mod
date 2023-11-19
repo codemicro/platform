@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	git.tdpain.net/codemicro/kindle-dashboard v0.1.1 // indirect
+	git.tdpain.net/codemicro/kindle-dashboard v0.1.2 // indirect
 	github.com/ByteArena/poly2tri-go v0.0.0-20170716161910-d102ad91854f // indirect
 	github.com/benoitkugler/textlayout v0.3.0 // indirect
 	github.com/benoitkugler/textprocessing v0.0.3 // indirect
