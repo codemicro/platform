@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"git.tdpain.net/codemicro/kindle-dashboard/imagegen"
 	"git.tdpain.net/pkg/cfger"
 	"log/slog"
 	"os"
@@ -30,11 +31,12 @@ type SpotifyTiles struct {
 }
 
 type Config struct {
-	Debug        bool
-	HTTP         *HTTP
-	ReadingList  *ReadingList
-	SpotifyTiles *SpotifyTiles
-	HostSuffix   string
+	Debug           bool
+	HTTP            *HTTP
+	ReadingList     *ReadingList
+	SpotifyTiles    *SpotifyTiles
+	KindleDashboard *imagegen.Config
+	HostSuffix      string
 }
 
 var (
@@ -65,6 +67,13 @@ func Get() *Config {
 				ClientID:     cl.Required("spotifyTiles.clientID").AsString(),
 				ClientSecret: cl.Required("spotifyTiles.clientSecret").AsString(),
 				RedirectURI:  cl.Get("spotifyTiles.redirectURI").AsString(),
+			},
+			KindleDashboard: &imagegen.Config{
+				WxLocation:               cl.Required("kindle.weatherLocationID").AsString(),
+				MetOfficeDatapointAPIKey: cl.Required("kindle.metOfficeDatapointToken").AsString(),
+				TrainsLocation:           cl.Required("kindle.trainsLocationCRS").AsString(),
+				RTTUsername:              cl.Required("kindle.rttUsername").AsString(),
+				RTTPassword:              cl.Required("kindle.rttPassword").AsString(),
 			},
 			HostSuffix: cl.Required("hostSuffix").AsString(),
 		}

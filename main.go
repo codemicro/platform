@@ -7,6 +7,7 @@ import (
 	"os"
 
 	_ "github.com/codemicro/platform/modules/avatars"
+	_ "github.com/codemicro/platform/modules/kindle"
 	_ "github.com/codemicro/platform/modules/readingList"
 	_ "github.com/codemicro/platform/modules/spotifyTiles"
 	_ "github.com/codemicro/platform/modules/test"
